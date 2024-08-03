@@ -1,7 +1,10 @@
-# ungoogled-chromium
+# ungoogled-chromium-scape
+
+🎉 Scaping patch
+*This fork aim to provide a ways to customize chromium fingerprint thingy. By not using init script on each document.*
+
 
 *A lightweight approach to removing Google web service dependency*
-
 **Help is welcome!** See the [docs/contributing.md](docs/contributing.md) document for more information.
 
 ## Objectives
