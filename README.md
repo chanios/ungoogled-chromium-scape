@@ -6,6 +6,88 @@
 
 *A lightweight approach to removing Google web service dependency*
 **Help is welcome!** See the [docs/contributing.md](docs/contributing.md) document for more information.
+## Fingerprint roadmap
+
+- [ ] Screen
+  - [ ] availHeight
+  - [ ] availWidth
+  - [ ] pixelDepth
+  - [ ] height
+  - [ ] width
+  - [ ] availTop
+  - [ ] availLeft
+  - [ ] colorDepth
+  - [ ] innerHeight
+  - [ ] outerHeight
+  - [ ] outerWidth
+  - [ ] innerWidth
+  - [ ] screenX
+  - [ ] pageXOffset
+  - [ ] pageYOffset
+  - [ ] devicePixelRatio
+  - [ ] clientWidth
+  - [ ] clientHeight
+  - [ ] hasHDR
+- [ ] Navigator
+  - [ ] userAgent
+  - [ ] userAgentData
+    - [ ] brands
+    - [ ] mobile
+    - [ ] platform
+    - [ ] architecture
+    - [ ] bitness
+    - [ ] fullVersionList
+    - [ ] model
+    - [ ] platformVersion
+    - [ ] uaFullVersion
+  - [ ] language
+  - [ ] languages
+  - [ ] platform
+  - [ ] deviceMemory
+  - [ ] hardwareConcurrency
+  - [ ] maxTouchPoints
+  - [ ] product
+  - [ ] productSub
+  - [ ] vendor
+  - [ ] vendorSub
+  - [ ] doNotTrack
+  - [ ] appCodeName
+  - [ ] appName
+  - [ ] appVersion
+  - [ ] oscpu
+  - [ ] extraProperties
+    - [ ] vendorFlavors
+    - [ ] isBluetoothSupported
+    - [ ] globalPrivacyControl
+    - [ ] pdfViewerEnabled
+    - [ ] installedApps
+  - [ ] webdriver
+- [ ] Audio Codecs
+  - [ ] ogg
+  - [ ] mp3
+  - [ ] wav
+  - [ ] m4a
+  - [ ] aac
+- [ ] Video Codecs
+  - [ ] ogg
+  - [ ] h264
+  - [ ] webm
+- [ ] Plugins Data
+  - [ ] plugins
+  - [ ] mimeTypes
+- [ ] Battery
+  - [ ] charging
+  - [ ] chargingTime
+  - [ ] dischargingTime
+  - [ ] level
+- [ ] Video Card
+  - [ ] vendor
+  - [ ] renderer
+- [ ] Multimedia Devices
+- [ ] Fonts
+- [ ] Mock WebRTC
+- [ ] Slim
+
 
 ## Objectives
 
