@@ -101,7 +101,7 @@ by default.
      "-----BEGIN PUBLIC KEY-----"
 --- a/chrome/browser/media/webrtc/webrtc_event_log_uploader.cc
 +++ b/chrome/browser/media/webrtc/webrtc_event_log_uploader.cc
-@@ -111,7 +111,7 @@ void OnURLLoadUploadProgress(uint64_t cu
+@@ -110,7 +110,7 @@ void OnURLLoadUploadProgress(uint64_t cu
  }  // namespace
  
  const char WebRtcEventLogUploaderImpl::kUploadURL[] =
@@ -112,7 +112,7 @@ by default.
      scoped_refptr<base::SequencedTaskRunner> task_runner)
 --- a/chrome/browser/media/webrtc/webrtc_log_uploader.cc
 +++ b/chrome/browser/media/webrtc/webrtc_log_uploader.cc
-@@ -528,7 +528,7 @@ void WebRtcLogUploader::UploadCompressed
+@@ -535,7 +535,7 @@ void WebRtcLogUploader::UploadCompressed
            }
          })");
  
@@ -156,7 +156,7 @@ by default.
  
 --- a/chrome/browser/safe_browsing/download_protection/download_feedback.cc
 +++ b/chrome/browser/safe_browsing/download_protection/download_feedback.cc
-@@ -192,7 +192,7 @@ const int64_t DownloadFeedback::kMaxUplo
+@@ -178,7 +178,7 @@ const int64_t DownloadFeedback::kMaxUplo
  
  // static
  const char DownloadFeedback::kSbFeedbackURL[] =
@@ -167,7 +167,7 @@ by default.
  DownloadFeedbackFactory* DownloadFeedback::factory_ = nullptr;
 --- a/chrome/browser/spellchecker/spellcheck_hunspell_dictionary.cc
 +++ b/chrome/browser/spellchecker/spellcheck_hunspell_dictionary.cc
-@@ -274,7 +274,7 @@ GURL SpellcheckHunspellDictionary::GetDi
+@@ -273,7 +273,7 @@ GURL SpellcheckHunspellDictionary::GetDi
    DCHECK(!bdict_file.empty());
  
    static const char kDownloadServerUrl[] =
@@ -178,21 +178,21 @@ by default.
                base::ToLowerASCII(bdict_file));
 --- a/chrome/browser/ui/dialogs/outdated_upgrade_bubble.cc
 +++ b/chrome/browser/ui/dialogs/outdated_upgrade_bubble.cc
-@@ -44,7 +44,7 @@ const char* kUpdateBrowserRedirectUrl =
- #else
-     // The URL to be used to re-install Chrome when auto-update failed for
-     // too long.
--    "https://www.google.com/chrome";
-+    "trk:242:https://www.google.com/chrome";
- #endif
+@@ -33,7 +33,7 @@
+ namespace {
+ 
+ // The URL to be used to re-install Chrome when auto-update failed for too long.
+-const char* kUpdateBrowserRedirectUrl = "https://www.google.com/chrome";
++const char* kUpdateBrowserRedirectUrl = "trk:242:https://www.google.com/chrome";
  
  bool g_upgrade_bubble_is_showing = false;
+ 
 --- a/chrome/browser/ui/webui/ntp/ntp_resource_cache.cc
 +++ b/chrome/browser/ui/webui/ntp/ntp_resource_cache.cc
-@@ -71,17 +71,17 @@ namespace {
+@@ -73,17 +73,17 @@ namespace {
  // The URL for the the Learn More page shown on incognito new tab.
  const char kLearnMoreIncognitoUrl[] =
- #if BUILDFLAG(IS_CHROMEOS_ASH)
+ #if BUILDFLAG(IS_CHROMEOS)
 -    "https://support.google.com/chromebook/?p=incognito";
 +    "trk:246:https://support.google.com/chromebook/?p=incognito";
  #else
@@ -202,7 +202,7 @@ by default.
  
  // The URL for the Learn More page shown on guest session new tab.
  const char kLearnMoreGuestSessionUrl[] =
- #if BUILDFLAG(IS_CHROMEOS_ASH)
+ #if BUILDFLAG(IS_CHROMEOS)
 -    "https://support.google.com/chromebook/?p=chromebook_guest";
 +    "trk:248:https://support.google.com/chromebook/?p=chromebook_guest";
  #else
@@ -236,20 +236,9 @@ by default.
  
  // Launches the url directly with the user's default handler for |url|.
  bool NavigateToUrlWithHttps(const std::wstring& url) {
---- a/chromecast/crash/linux/minidump_uploader.cc
-+++ b/chromecast/crash/linux/minidump_uploader.cc
-@@ -40,7 +40,7 @@ namespace {
- 
- const char kProductName[] = "Eureka";
- 
--const char kCrashServerProduction[] = "https://clients2.google.com/cr/report";
-+const char kCrashServerProduction[] = "trk:305:https://clients2.google.com/cr/report";
- 
- const char kVirtualChannel[] = "virtual-channel";
- 
 --- a/chromeos/ash/components/geolocation/simple_geolocation_provider.h
 +++ b/chromeos/ash/components/geolocation/simple_geolocation_provider.h
-@@ -91,7 +91,7 @@ class COMPONENT_EXPORT(CHROMEOS_ASH_COMP
+@@ -101,7 +101,7 @@ class COMPONENT_EXPORT(CHROMEOS_ASH_COMP
  
   private:
    static constexpr char kGeolocationProviderUrl[] =
@@ -260,7 +249,7 @@ by default.
    explicit SimpleGeolocationProvider(
 --- a/components/drive/service/drive_api_service.cc
 +++ b/components/drive/service/drive_api_service.cc
-@@ -77,9 +77,9 @@ namespace drive {
+@@ -79,9 +79,9 @@ namespace drive {
  namespace {
  
  // OAuth2 scopes for Drive API.
@@ -285,7 +274,7 @@ by default.
  
 --- a/components/google/core/common/google_util.cc
 +++ b/components/google/core/common/google_util.cc
-@@ -140,7 +140,7 @@ bool IsGoogleSearchSubdomainUrl(const GU
+@@ -147,7 +147,7 @@ bool IsGoogleSearchSubdomainUrl(const GU
  
  // Global functions -----------------------------------------------------------
  
@@ -315,7 +304,7 @@ by default.
      "https://history.google.com/history/api/lookup?client=audio";
 --- a/components/safe_browsing/content/browser/client_side_detection_service.cc
 +++ b/components/safe_browsing/content/browser/client_side_detection_service.cc
-@@ -69,7 +69,7 @@ const int ClientSideDetectionService::kN
+@@ -70,7 +70,7 @@ const int ClientSideDetectionService::kN
  const int ClientSideDetectionService::kPositiveCacheIntervalMinutes = 30;
  
  const char ClientSideDetectionService::kClientReportPhishingUrl[] =
@@ -326,7 +315,7 @@ by default.
    std::unique_ptr<network::SimpleURLLoader> loader;
 --- a/components/safe_search_api/safe_search/safe_search_url_checker_client.cc
 +++ b/components/safe_search_api/safe_search/safe_search_url_checker_client.cc
-@@ -28,7 +28,7 @@ namespace safe_search_api {
+@@ -27,7 +27,7 @@ namespace safe_search_api {
  namespace {
  
  const char kSafeSearchApiUrl[] =
@@ -348,7 +337,7 @@ by default.
    base::Value::Dict dict;
 --- a/components/translate/core/browser/translate_url_fetcher.cc
 +++ b/components/translate/core/browser/translate_url_fetcher.cc
-@@ -99,6 +99,7 @@ bool TranslateURLFetcher::Request(const
+@@ -98,6 +98,7 @@ bool TranslateURLFetcher::Request(const
    if (!extra_request_header_.empty())
      resource_request->headers.AddHeaderFromString(extra_request_header_);
  
@@ -391,7 +380,7 @@ by default.
  
 --- a/content/browser/webauth/webauth_request_security_checker.h
 +++ b/content/browser/webauth/webauth_request_security_checker.h
-@@ -86,9 +86,9 @@ class CONTENT_EXPORT WebAuthRequestSecur
+@@ -90,9 +90,9 @@ class CONTENT_EXPORT WebAuthRequestSecur
    // Legacy App IDs, which google.com origins are allowed to assert for
    // compatibility reasons.
    static constexpr char kGstaticAppId[] =
@@ -405,7 +394,7 @@ by default.
    WebAuthRequestSecurityChecker(const WebAuthRequestSecurityChecker&) = delete;
 --- a/content/shell/browser/shell_browser_main_parts.cc
 +++ b/content/shell/browser/shell_browser_main_parts.cc
-@@ -91,7 +91,7 @@ GURL GetStartupURL() {
+@@ -85,7 +85,7 @@ GURL GetStartupURL() {
  #else
    const base::CommandLine::StringVector& args = command_line->GetArgs();
    if (args.empty())
@@ -416,9 +405,9 @@ by default.
    GURL url(base::WideToUTF16(args[0]));
 --- a/extensions/common/extension_urls.cc
 +++ b/extensions/common/extension_urls.cc
-@@ -32,10 +32,10 @@ bool IsSourceFromAnExtension(const std::
+@@ -39,10 +39,10 @@ const GURL* g_item_snippet_url_for_test_
  
- namespace extension_urls {
+ }  // namespace
  
 -const char kChromeWebstoreBaseURL[] = "https://chrome.google.com/webstore";
 -const char kNewChromeWebstoreBaseURL[] = "https://chromewebstore.google.com/";
@@ -432,7 +421,7 @@ by default.
  const char kExtensionsMenuUtmSource[] = "ext_extensions_menu";
 --- a/google_apis/gaia/gaia_constants.cc
 +++ b/google_apis/gaia/gaia_constants.cc
-@@ -14,157 +14,157 @@ const char kChromeSource[] = "ChromiumBr
+@@ -14,169 +14,169 @@ const char kChromeSource[] = "ChromiumBr
  const char kUnexpectedServiceResponse[] = "UnexpectedServiceResponse";
  
  // OAuth scopes.
@@ -494,6 +483,21 @@ by default.
  const char kPeopleApiReadOnlyOAuth2Scope[] =
 -    "https://www.googleapis.com/auth/peopleapi.readonly";
 +    "trk:081:https://www.googleapis.com/auth/peopleapi.readonly";
+ 
+ // OAuth2 scope for access to the people API (read-write).
+ const char kPeopleApiReadWriteOAuth2Scope[] =
+-    "https://www.googleapis.com/auth/peopleapi.readwrite";
++    "trk:115:https://www.googleapis.com/auth/peopleapi.readwrite";
+ 
+ // OAuth2 scope for read-write access to contacts.
+-const char kContactsOAuth2Scope[] = "https://www.googleapis.com/auth/contacts";
++const char kContactsOAuth2Scope[] = "trk:117:https://www.googleapis.com/auth/contacts";
+ 
+ // OAuth2 scope for access to the people API person's locale preferences
+ // (read-only).
+ const char kProfileLanguageReadOnlyOAuth2Scope[] =
+-    "https://www.googleapis.com/auth/profile.language.read";
++    "trk:116:https://www.googleapis.com/auth/profile.language.read";
  
  // OAuth2 scope for access to the programmatic challenge API (read-only).
  const char kProgrammaticChallengeOAuth2Scope[] =
@@ -584,9 +588,9 @@ by default.
 +    "trk:099:https://www.googleapis.com/auth/assistant-sdk-prototype";
  
  // OAuth2 scope for access to nearby devices (fast pair) APIs.
- const char kCloudPlatformProjectsOAuth2Scope[] =
--    "https://www.googleapis.com/auth/cloudplatformprojects";
-+    "trk:100:https://www.googleapis.com/auth/cloudplatformprojects";
+ const char kNearbyDevicesOAuth2Scope[] =
+-    "https://www.googleapis.com/auth/nearbydevices-pa";
++    "trk:100:https://www.googleapis.com/auth/nearbydevices-pa";
  
  // OAuth2 scope for access to nearby sharing.
  const char kNearbyShareOAuth2Scope[] =
@@ -688,34 +692,6 @@ by default.
  const int kFinancialPort = 443;
  
  // Ping times in 100-nanosecond intervals.
---- a/ui/accessibility/extensions/chromevoxclassic/chromevox/background/prefs.js
-+++ b/ui/accessibility/extensions/chromevoxclassic/chromevox/background/prefs.js
-@@ -72,9 +72,9 @@ cvox.ChromeVoxPrefs.DEFAULT_PREFS = {
-   'outputContextFirst': false,
-   'position': '{}',
-   'siteSpecificScriptBase':
--      'https://ssl.gstatic.com/accessibility/javascript/ext/',
-+      'trk:242:https://ssl.gstatic.com/accessibility/javascript/ext/',
-   'siteSpecificScriptLoader':
--      'https://ssl.gstatic.com/accessibility/javascript/ext/loader.js',
-+      'trk:243:https://ssl.gstatic.com/accessibility/javascript/ext/loader.js',
-   'sticky': false,
-   'typingEcho': 0,
-   'useIBeamCursor': cvox.ChromeVox.isMac,
---- a/ui/accessibility/extensions/chromevoxclassic/host/chrome/host.js
-+++ b/ui/accessibility/extensions/chromevoxclassic/host/chrome/host.js
-@@ -96,9 +96,9 @@ cvox.ChromeHost.prototype.init = functio
-           (!cvox.ApiImplementation.siteSpecificScriptLoader ||
-            !cvox.ApiImplementation.siteSpecificScriptBase);
-       cvox.ApiImplementation.siteSpecificScriptLoader =
--          'https://ssl.gstatic.com/accessibility/javascript/ext/loader.js';
-+          'trk:244:https://ssl.gstatic.com/accessibility/javascript/ext/loader.js';
-       cvox.ApiImplementation.siteSpecificScriptBase =
--          'https://ssl.gstatic.com/accessibility/javascript/ext/';
-+          'trk:245:https://ssl.gstatic.com/accessibility/javascript/ext/';
-       if (apiPrefsChanged) {
-         var searchInit = prefs['siteSpecificEnhancements'] === 'true' ?
-             cvox.SearchLoader.init :
 --- a/ui/views/examples/webview_example.cc
 +++ b/ui/views/examples/webview_example.cc
 @@ -28,7 +28,7 @@ void WebViewExample::CreateExampleView(V

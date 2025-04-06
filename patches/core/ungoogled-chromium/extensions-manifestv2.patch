@@ -1,24 +1,26 @@
---- a/chrome/browser/extensions/chrome_browser_context_keyed_service_factories.cc
-+++ b/chrome/browser/extensions/chrome_browser_context_keyed_service_factories.cc
-@@ -22,7 +22,6 @@
- #include "chrome/browser/extensions/extension_web_ui_override_registrar.h"
- #include "chrome/browser/extensions/install_tracker_factory.h"
- #include "chrome/browser/extensions/install_verifier_factory.h"
--#include "chrome/browser/extensions/manifest_v2_experiment_manager.h"
- #include "chrome/browser/extensions/menu_manager_factory.h"
- #include "chrome/browser/extensions/permissions/permissions_updater.h"
- #include "chrome/browser/extensions/plugin_manager.h"
-@@ -48,7 +47,6 @@ void EnsureChromeBrowserContextKeyedServ
-   extensions::IncognitoConnectability::EnsureFactoryBuilt();
-   extensions::InstallTrackerFactory::GetInstance();
-   extensions::InstallVerifierFactory::GetInstance();
--  extensions::ManifestV2ExperimentManager::GetFactory();
-   extensions::MenuManagerFactory::GetInstance();
-   extensions::PermissionsUpdater::EnsureAssociatedFactoryBuilt();
- #if BUILDFLAG(ENABLE_PLUGINS)
+--- a/chrome/browser/extensions/api/developer_private/extension_info_generator_desktop.cc
++++ b/chrome/browser/extensions/api/developer_private/extension_info_generator_desktop.cc
+@@ -131,17 +131,6 @@ void ExtensionInfoGenerator::FillExtensi
+     info.controlled_info.emplace();
+     info.controlled_info->text =
+         l10n_util::GetStringUTF8(IDS_EXTENSIONS_INSTALL_LOCATION_ENTERPRISE);
+-  } else {
+-    // Create Safety Hub information for any non-enterprise extension.
+-    developer::SafetyCheckWarningReason warning_reason =
+-        ExtensionSafetyCheckUtils::GetSafetyCheckWarningReason(extension,
+-                                                               profile);
+-    if (warning_reason != developer::SafetyCheckWarningReason::kNone) {
+-      info.safety_check_warning_reason = warning_reason;
+-      info.safety_check_text =
+-          ExtensionSafetyCheckUtils::GetSafetyCheckWarningStrings(
+-              warning_reason, state);
+-    }
+   }
+ 
+   bool is_enabled = state == developer::ExtensionState::kEnabled;
 --- a/chrome/browser/extensions/extension_management.cc
 +++ b/chrome/browser/extensions/extension_management.cc
-@@ -287,31 +287,7 @@ bool ExtensionManagement::IsAllowedManif
+@@ -318,31 +318,7 @@ bool ExtensionManagement::IsAllowedManif
      int manifest_version,
      const std::string& extension_id,
      Manifest::Type manifest_type) {
@@ -50,7 +52,7 @@
  }
  
  bool ExtensionManagement::IsAllowedManifestVersion(const Extension* extension) {
-@@ -332,26 +308,8 @@ bool ExtensionManagement::IsExemptFromMV
+@@ -363,26 +339,8 @@ bool ExtensionManagement::IsExemptFromMV
      return false;
    }
  
@@ -79,10 +81,21 @@
  bool ExtensionManagement::IsAllowedByUnpublishedAvailabilityPolicy(
 --- a/chrome/browser/extensions/manifest_v2_experiment_manager.cc
 +++ b/chrome/browser/extensions/manifest_v2_experiment_manager.cc
-@@ -76,11 +76,6 @@ KeyedService* ManifestV2ExperimentManage
- }
+@@ -145,22 +145,6 @@ bool ManifestV2ExperimentManagerFactory:
  
+ // Determines the current stage of the MV2 deprecation experiments.
  MV2ExperimentStage CalculateCurrentExperimentStage() {
+-  // Return the "highest" stage that is currently active for the user.
+-  if (base::FeatureList::IsEnabled(
+-          extensions_features::kExtensionManifestV2Unsupported)) {
+-    return MV2ExperimentStage::kUnsupported;
+-  }
+-
+-  if (base::FeatureList::IsEnabled(
+-          extensions_features::kExtensionManifestV2Disabled)) {
+-    return MV2ExperimentStage::kDisableWithReEnable;
+-  }
+-
 -  if (base::FeatureList::IsEnabled(
 -          extensions_features::kExtensionManifestV2DeprecationWarning)) {
 -    return MV2ExperimentStage::kWarning;
@@ -90,4 +103,51 @@
 -
    return MV2ExperimentStage::kNone;
  }
+ 
+@@ -200,19 +184,7 @@ PrefMap GetGlobalNoticeAcknowledgedPrefF
+ // Returns true if legacy extensions should be disabled, looking at both
+ // experiment stage and global state.
+ bool ShouldDisableLegacyExtensions(MV2ExperimentStage stage) {
+-  if (g_allow_mv2_for_testing) {
+-    // We allow legacy MV2 extensions for testing purposes.
+-    return false;
+-  }
+-
+-  switch (stage) {
+-    case MV2ExperimentStage::kNone:
+-    case MV2ExperimentStage::kWarning:
+       return false;
+-    case MV2ExperimentStage::kDisableWithReEnable:
+-    case MV2ExperimentStage::kUnsupported:
+-      return true;
+-  }
+ }
+ 
+ // Returns true if the given `stage` is one in which extension enablement should
+--- a/chrome/browser/ui/webui/extensions/extensions_ui.cc
++++ b/chrome/browser/ui/webui/extensions/extensions_ui.cc
+@@ -477,7 +477,7 @@ content::WebUIDataSource* CreateAndAddEx
+           extensions_features::kExtensionsMenuAccessControlWithPermittedSites));
+   source->AddBoolean(
+       "safetyHubThreeDotDetails",
+-      base::FeatureList::IsEnabled(features::kSafetyHubThreeDotDetails));
++      false);
+ 
+ // TODO(crbug.com/392777363): Clean these up with non-placeholder values.
+ #if BUILDFLAG(IS_ANDROID)
+--- a/extensions/common/extension.cc
++++ b/extensions/common/extension.cc
+@@ -96,13 +96,6 @@ bool IsManifestSupported(int manifest_ve
+   // Supported versions are always safe.
+   if (manifest_version >= kMinimumSupportedManifestVersion &&
+       manifest_version <= kMaximumSupportedManifestVersion) {
+-    // Emit a warning for unpacked extensions on Manifest V2 warning that
+-    // MV2 is deprecated.
+-    if (type == Manifest::TYPE_EXTENSION && manifest_version == 2 &&
+-        Manifest::IsUnpackedLocation(location) &&
+-        !g_silence_deprecated_manifest_version_warnings) {
+-      *warning = errors::kManifestV2IsDeprecatedWarning;
+-    }
+     return true;
+   }
  

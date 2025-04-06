@@ -7,6 +7,7 @@
 """Prune binaries from the source tree"""
 
 import argparse
+import itertools
 import sys
 import os
 import stat
@@ -15,42 +16,118 @@ from pathlib import Path
 from _common import ENCODING, get_logger, add_common_params
 
 # List of paths to prune if they exist, excluded from domain_substitution and pruning lists
-# These allow the lists to be compatible between cloned and tarball sources
+# These allow the lists to be compatible between cloned, tarball, and lite tarball sources
 CONTINGENT_PATHS = (
-    # Overridable git sources
-    'third_party/angle/third_party/VK-GL-CTS/src/',
-    'third_party/instrumented_libs/',
     # CIPD sources
     'buildtools/linux64/',
-    'buildtools/reclient/',
-    'third_party/apache-linux/',
-    'third_party/checkstyle/',
+    'third_party/checkstyle/cipd/',
+    'third_party/dawn/third_party/ninja/',
+    'third_party/dawn/tools/golang/',
+    'third_party/devtools-frontend/src/third_party/esbuild/',
     'third_party/google-java-format/',
-    'third_party/libei/',
+    'third_party/libei/cipd/',
     'third_party/ninja/',
-    'third_party/screen-ai/',
-    'third_party/siso/',
+    'third_party/openscreen/src/third_party/ninja/',
+    'third_party/siso/cipd/',
     'third_party/updater/chrome_linux64/',
+    'third_party/updater/chrome_linux64_sans_iid/cipd/',
     'third_party/updater/chromium_linux64/',
+    'third_party/updater/chromium_linux64_sans_iid/cipd/',
     'tools/luci-go/',
     'tools/resultdb/',
     'tools/skia_goldctl/linux/',
     # GCS sources
-    'base/tracing/test/data',
-    'build/linux/debian_bullseye_amd64-sysroot/',
-    'build/linux/debian_bullseye_i386-sysroot/',
     'buildtools/linux64-format/',
     'third_party/blink/renderer/core/css/perftest_data/',
     'third_party/js_code_coverage/',
-    'third_party/llvm-build/Release+Asserts/',
-    'third_party/node/linux/',
+    'third_party/openscreen/src/buildtools/linux64-format/',
     'third_party/opus/tests/resources/',
-    'third_party/rust-toolchain/',
-    'third_party/subresource-filter-ruleset/data',
-    'third_party/test_fonts/test_fonts',
-    'third_party/tfhub_models/testdata/',
+    'third_party/subresource-filter-ruleset/data/',
     'tools/perf/page_sets/maps_perf_test/dataset/',
+    # Sysroots(GCS), include all arches the clone script is able to obtain
+    'build/linux/debian_bullseye_amd64-sysroot/',
+    'build/linux/debian_bullseye_arm64-sysroot/',
+    'build/linux/debian_bullseye_armhf-sysroot/',
+    'build/linux/debian_bullseye_i386-sysroot/',
+    'build/linux/debian_bullseye_mips64el-sysroot/',
+    'build/linux/debian_bullseye_mipsel-sysroot/',
+    # other
+    'third_party/depot_tools/external_bin/',
+    # Match removals for the tarball:
+    # https://source.chromium.org/chromium/chromium/tools/build/+/main:recipes/recipe_modules/chromium/resources/export_tarball.py
+    # nonessential
+    'third_party/blink/tools/',
+    'third_party/blink/web_tests/',
+    'third_party/hunspell_dictionaries/',
+    'third_party/hunspell/tests/',
+    'third_party/jdk/current/',
+    'third_party/jdk/extras/',
+    'third_party/liblouis/src/tests/braille-specs/',
+    'third_party/xdg-utils/tests/',
+    'v8/test/',
+    # test
+    'base/tracing/test/data/',
+    'chrome/test/data/',
+    'components/test/data/',
+    'content/test/data/accessibility/',
+    'content/test/data/gpu/',
+    'content/test/data/media/',
+    'courgette/testdata/',
+    'extensions/test/data/',
+    'media/test/data/',
+    'native_client/src/trusted/service_runtime/testdata/',
+    'testing/libfuzzer/fuzzers/wasm_corpus/',
+    'third_party/blink/perf_tests/',
+    'third_party/breakpad/breakpad/src/processor/testdata/',
+    'third_party/catapult/tracing/test_data/',
+    'third_party/dawn/test/',
+    'third_party/expat/src/testdata/',
+    'third_party/harfbuzz-ng/src/test/',
+    'third_party/llvm/llvm/test/',
+    'third_party/ots/src/tests/fonts/',
+    'third_party/rust-src/src/gcc/gcc/testsuite/',
+    'third_party/rust-src/src/llvm-project/clang/test/',
+    'third_party/rust-src/src/llvm-project/llvm/test/',
+    'third_party/screen-ai/linux/resources/',
+    'third_party/sqlite/src/test/',
+    'third_party/swiftshader/tests/regres/',
+    'third_party/test_fonts/test_fonts/',
+    'tools/perf/testdata/',
+    # lite tarball paths:
+    # https://source.chromium.org/chromium/chromium/tools/build/+/main:recipes/recipes/publish_tarball.py
+    'android_webview/',
+    'buildtools/reclient/',
+    'chrome/android/',
+    'chromecast/',
+    'ios/',
+    'native_client/',
+    'native_client_sdk/',
+    'third_party/android_platform/',
+    'third_party/angle/third_party/VK-GL-CTS/',
+    'third_party/apache-linux/',
+    'third_party/catapult/third_party/vinn/third_party/v8/',
+    'third_party/closure_compiler/',
+    'third_party/instrumented_libs/',
+    'third_party/llvm/',
+    'third_party/llvm-build/',
+    'third_party/llvm-build-tools/',
+    'third_party/node/linux/',
+    'third_party/rust-src/',
+    'third_party/rust-toolchain/',
+    'third_party/webgl/',
+    'third_party/blink/manual_tests/',
+    'third_party/blink/perf_tests/',
 )
+
+# Files that should be excluded when pruning contingent paths.
+KEEP_FILES = (
+    'chrome/test/data/webui/i18n_process_css_test.html',
+    'chrome/test/data/webui/mojo/foobar.mojom',
+    'v8/test/torque/test-torque.tq',
+)
+
+# File suffixes that should be excluded when pruning contingent paths.
+KEEP_SUFFIXES = ('.gn', '.gni', '.grd', '.grdp', '.isolate', '.pydeps')
 
 
 def prune_files(unpack_root, prune_list):
@@ -75,13 +152,17 @@ def prune_files(unpack_root, prune_list):
     return unremovable_files
 
 
-def _prune_path(path):
+def _prune_path(path, unpack_root=None):
     """
-    Delete all files and directories in path.
+    Delete files and directories in path.
 
     path is a pathlib.Path to the directory to be pruned
+    unpack_root is a pathlib.Path to the source tree
     """
     for node in sorted(path.rglob('*'), key=lambda l: len(str(l)), reverse=True):
+        if unpack_root is not None and (node.suffix in KEEP_SUFFIXES
+                                        or str(node.relative_to(unpack_root)) in KEEP_FILES):
+            continue
         if node.is_file() or node.is_symlink():
             try:
                 node.unlink()
@@ -115,7 +196,7 @@ def prune_dirs(unpack_root, keep_contingent_paths, sysroot):
                 get_logger().info('%s: %s', 'Exempt', cpath)
                 continue
             get_logger().info('%s: %s', 'Exists' if Path(cpath).exists() else 'Absent', cpath)
-            _prune_path(unpack_root / cpath)
+            _prune_path(unpack_root / cpath, unpack_root)
 
 
 def _callback(args):
@@ -128,9 +209,12 @@ def _callback(args):
     prune_list = tuple(filter(len, args.pruning_list.read_text(encoding=ENCODING).splitlines()))
     unremovable_files = prune_files(args.directory, prune_list)
     if unremovable_files:
-        get_logger().error('%d files could not be pruned.', len(unremovable_files))
-        get_logger().debug('Files could not be pruned:\n%s',
-                           '\n'.join(f for f in unremovable_files))
+        file_list = '\n'.join(f for f in itertools.islice(unremovable_files, 5))
+        if len(unremovable_files) > 5:
+            file_list += '\n... and ' + str(len(unremovable_files) - 5) + ' more'
+            get_logger().debug('files that could not be pruned:\n%s',
+                               '\n'.join(f for f in unremovable_files))
+        get_logger().error('%d files could not be pruned:\n%s', len(unremovable_files), file_list)
         sys.exit(1)
 
 

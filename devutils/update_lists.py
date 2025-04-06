@@ -28,6 +28,8 @@ sys.path.pop(0)
 # Encoding for output files
 _ENCODING = 'UTF-8'
 
+# pylint: disable=line-too-long
+
 # NOTE: Include patterns have precedence over exclude patterns
 # pathlib.Path.match() paths to include in binary pruning
 PRUNING_INCLUDE_PATTERNS = [
@@ -58,6 +60,9 @@ PRUNING_EXCLUDE_PATTERNS = [
     'build/android/chromium-debug.keystore',
     'third_party/icu/android/icudtl.dat',
     'third_party/icu/common/icudtb.dat',
+    # Exclusion for rollup v4.0+
+    'third_party/devtools-frontend/src/node_modules/@rollup/wasm-node/dist/wasm-node/bindings_wasm_bg.wasm',
+    'third_party/node/node_modules/@rollup/wasm-node/dist/wasm-node/bindings_wasm_bg.wasm',
     # Exclusion for performance tracing
     'third_party/perfetto/src/trace_processor/importers/proto/atoms.descriptor',
     # Exclusions for safe file extensions
@@ -104,9 +109,13 @@ DOMAIN_EXCLUDE_PREFIXES = [
     # Exclusions for Visual Studio Project generation with GN (PR #445)
     'tools/gn/',
     # Exclusions for files covered with other patches/unnecessary
-    'components/search_engines/prepopulated_engines.json',
+    'third_party/search_engines_data/resources/definitions/prepopulated_engines.json',
     'third_party/blink/renderer/core/dom/document.cc',
+    # Exclusion to allow download of sysroots
+    'build/linux/sysroot_scripts/sysroots.json',
 ]
+
+# pylint: enable=line-too-long
 
 # pathlib.Path.match() patterns to include in domain substitution
 DOMAIN_INCLUDE_PATTERNS = [
@@ -255,7 +264,7 @@ def compute_lists_proc(path, source_tree, search_regex):
     symlink_set = set()
     if path.is_file():
         relative_path = path.relative_to(source_tree)
-        if not any(cpath in str(relative_path.as_posix()) for cpath in CONTINGENT_PATHS):
+        if not any(str(relative_path.as_posix()).startswith(cpath) for cpath in CONTINGENT_PATHS):
             if path.is_symlink():
                 try:
                     resolved_relative_posix = path.resolve().relative_to(source_tree).as_posix()

@@ -1,17 +1,17 @@
 --- a/chrome/browser/browser_features.cc
 +++ b/chrome/browser/browser_features.cc
-@@ -401,4 +401,5 @@ BASE_FEATURE(kBrowserDynamicCodeDisabled
-              base::FEATURE_DISABLED_BY_DEFAULT);
- #endif  // BUILDFLAG(IS_WIN)
+@@ -357,4 +357,5 @@ BASE_FEATURE(kRemovalOfIWAsFromTabCaptur
+              "RemovalOfIWAsFromTabCapture",
+              base::FEATURE_ENABLED_BY_DEFAULT);
  
 +BASE_FEATURE(kClearDataOnExit, "ClearDataOnExit", base::FEATURE_DISABLED_BY_DEFAULT);
  }  // namespace features
 --- a/chrome/browser/browser_features.h
 +++ b/chrome/browser/browser_features.h
-@@ -151,6 +151,7 @@ BASE_DECLARE_FEATURE(kWebUsbDeviceDetect
- #if BUILDFLAG(IS_WIN)
- BASE_DECLARE_FEATURE(kBrowserDynamicCodeDisabled);
- #endif
+@@ -134,6 +134,7 @@ BASE_DECLARE_FEATURE(kRemovalOfIWAsFromT
+ // module, e.g.
+ // //chrome/browser/<foo_module>/features.h
+ //
 +BASE_DECLARE_FEATURE(kClearDataOnExit);
  }  // namespace features
  
@@ -48,7 +48,7 @@
  uint64_t GetOriginTypeMask(const base::Value::List& data_types) {
    uint64_t result = 0;
    for (const auto& data_type : data_types) {
-@@ -314,9 +330,10 @@ void ChromeBrowsingDataLifetimeManager::
+@@ -313,9 +329,10 @@ void ChromeBrowsingDataLifetimeManager::
    const base::Value::List& data_types = profile_->GetPrefs()->GetList(
        browsing_data::prefs::kClearBrowsingDataOnExitList);
  
@@ -61,7 +61,7 @@
      profile_->GetPrefs()->SetBoolean(
          browsing_data::prefs::kClearBrowsingDataOnExitDeletionPending, true);
      auto* remover = profile_->GetBrowsingDataRemover();
-@@ -327,8 +344,8 @@ void ChromeBrowsingDataLifetimeManager::
+@@ -326,8 +343,8 @@ void ChromeBrowsingDataLifetimeManager::
        DCHECK(keep_browser_alive);
  #endif
      remover->RemoveAndReply(base::Time(), base::Time::Max(),

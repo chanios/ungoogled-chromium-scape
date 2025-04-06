@@ -38,7 +38,6 @@ If a switch requires a value, you must specify it with an `=` sign; e.g. flag `-
   `--enable-incognito-themes` | Allows themes to change the appearance of Incognito windows.
   `--hide-extensions-menu` | Hides the extensions container. This includes the puzzle piece icon as well as any pinned extensions.
   `--hide-fullscreen-exit-ui` | Hides the "X" that appears when the mouse cursor is moved towards the top of the window in fullscreen mode. Additionally, this hides the "Press F11 to exit full screen" popup.
-  `--hide-sidepanel-button` | Hides the SidePanel Button.
   `--hide-tab-close-buttons` | Hides the close buttons on tabs.
   `--remove-grab-handle` | Removes the reserved empty space in the tabstrip for moving the window.
   `--remove-tabsearch-button` | Removes the tabsearch button from the tabstrip.
@@ -69,6 +68,7 @@ These are also available on the `chrome://flags` page.
   `ReducedSystemInfo` | Reduces the amount of system information obatainable through headers and javascript, also causes hardwareConcurrency to respond with two cores.
   `RemoveClientHints` | Removes client hints (information sent to servers about your system, similar to a user agent).
   `SetIpv6ProbeFalse` | Forces the result of the browser's IPv6 probing (i.e. IPv6 connectivity test) to be unsuccessful. This causes IPv4 addresses to be prioritized over IPv6 addresses. Without this flag, the probing result is set to be successful, which causes IPv6 to be used over IPv4 when possible.
+  `SpoofWebGLInfo` | Return generic values for WebGLDebugRendererInfo to remove a potential data leak while preventing potential website breakage.
 
 - ### Available only on desktop
 

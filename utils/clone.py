@@ -18,7 +18,6 @@ from stat import S_IWRITE
 from subprocess import run
 
 from _common import add_common_params, get_chromium_version, get_logger
-from prune_binaries import CONTINGENT_PATHS
 
 # Config file for gclient
 # Instances of 'src' replaced with UC_OUT, which will be replaced with the output directory
@@ -32,7 +31,6 @@ solutions = [
     "managed": False,
     "custom_deps": {
       "UC_OUT/third_party/angle/third_party/VK-GL-CTS/src": None,
-      "UC_OUT/third_party/instrumented_libs": None,
     },
     "custom_vars": {
       "checkout_configuration": "small",
@@ -47,13 +45,15 @@ target_cpu_only = True;
 """
 
 
-def clone(args): # pylint: disable=too-many-branches, too-many-statements
+def clone(args): # pylint: disable=too-many-branches, too-many-locals, too-many-statements
     """Clones, downloads, and generates the required sources"""
     get_logger().info('Setting up cloning environment')
     iswin = sys.platform.startswith('win')
     chromium_version = get_chromium_version()
     ucstaging = args.output / 'uc_staging'
     dtpath = ucstaging / 'depot_tools'
+    gsuver = '5.30'
+    gsupath = dtpath / 'external_bin' / 'gsutil' / ('gsutil_%s' % gsuver) / 'gsutil'
     gnpath = ucstaging / 'gn'
     environ['GCLIENT_FILE'] = str(ucstaging / '.gclient')
     environ['PATH'] += pathsep + str(dtpath)
@@ -107,21 +107,51 @@ def clone(args): # pylint: disable=too-many-branches, too-many-statements
     if iswin:
         (dtpath / 'git.bat').write_text('git')
     # Apply changes to gclient
-    run(['git', 'apply'],
+    run(['git', 'apply', '--ignore-whitespace'],
         input=Path(__file__).with_name('depot_tools.patch').read_text().replace(
-            'UC_OUT', str(args.output)).replace('UC_STAGING', str(ucstaging)),
+            'UC_OUT', str(args.output)).replace('UC_STAGING',
+                                                str(ucstaging)).replace('GSUVER', gsuver),
         cwd=dtpath,
         check=True,
         universal_newlines=True)
 
+    # Manualy set up the gsutil directory for newer versions of Python
+    get_logger().info('Cloning gsutil')
+    if not gsupath.exists():
+        gsupath.mkdir(parents=True)
+        run(['git', 'init', '-q'], cwd=gsupath, check=True)
+        run(['git', 'remote', 'add', 'origin', 'https://github.com/GoogleCloudPlatform/gsutil'],
+            cwd=gsupath,
+            check=True)
+    run(['git', 'fetch', '--depth=1', 'origin', 'v%s' % gsuver], cwd=gsupath, check=True)
+    run(['git', 'reset', '--hard', 'FETCH_HEAD'], cwd=gsupath, check=True)
+    run(['git', 'clean', '-ffdx'], cwd=gsupath, check=True)
+    get_logger().info('Updating gsutil submodules')
+    run(['git', 'submodule', 'update', '--init', '--recursive', '--depth=1', '-q'],
+        cwd=gsupath,
+        check=True)
+    # apitools needs to be set to a newer commit for newer versions of Python
+    run(['git', 'fetch', 'origin', 'f0dfa4e3fcb510d7d27389e011198d9f176026e2'],
+        cwd=(gsupath / 'third_party' / 'apitools'),
+        check=True)
+    run(['git', 'reset', '--hard', 'FETCH_HEAD'],
+        cwd=(gsupath / 'third_party' / 'apitools'),
+        check=True)
+    (gsupath / 'install.flag').write_text('This flag file is dropped by clone.py')
+
     # gn requires full history to be able to generate last_commit_position.h
     get_logger().info('Cloning gn')
+    gn_commit = re.search(r"gn_version': 'git_revision:([^']+)',",
+                          Path(args.output / 'DEPS').read_text()).group(1)
+    if not gn_commit:
+        get_logger().error('Unable to obtain commit for gn checkout')
+        sys.exit(1)
     if gnpath.exists():
         run(['git', 'fetch'], cwd=gnpath, check=True)
-        run(['git', 'reset', '--hard', 'FETCH_HEAD'], cwd=gnpath, check=True)
-        run(['git', 'clean', '-ffdx'], cwd=gnpath, check=True)
     else:
         run(['git', 'clone', "https://gn.googlesource.com/gn", str(gnpath)], check=True)
+    run(['git', 'reset', '--hard', gn_commit], cwd=gnpath, check=True)
+    run(['git', 'clean', '-ffdx'], cwd=gnpath, check=True)
 
     get_logger().info('Running gsync')
     if args.custom_config:
@@ -140,15 +170,6 @@ def clone(args): # pylint: disable=too-many-branches, too-many-statements
 
     # Follow tarball procedure:
     # https://source.chromium.org/chromium/chromium/tools/build/+/main:recipes/recipes/publish_tarball.py
-    get_logger().info('Downloading node modules')
-    run([
-        sys.executable,
-        str(dtpath / 'download_from_google_storage.py'), '--no_resume', '--extract', '--no_auth',
-        '--bucket', 'chromium-nodejs', '-s',
-        str(args.output / 'third_party' / 'node' / 'node_modules.tar.gz.sha1')
-    ],
-        check=True)
-
     get_logger().info('Downloading pgo profiles')
     run([
         sys.executable,
@@ -211,58 +232,10 @@ def clone(args): # pylint: disable=too-many-branches, too-many-statements
          str(args.output / 'tools' / 'gn' / 'bootstrap'))
 
     get_logger().info('Removing uneeded files')
-    # Match removals for the tarball:
-    # https://source.chromium.org/chromium/chromium/tools/build/+/main:recipes/recipe_modules/chromium/resources/export_tarball.py
-    remove_dirs = (
-        (args.output / 'chrome' / 'test' / 'data'),
-        (args.output / 'content' / 'test' / 'data'),
-        (args.output / 'courgette' / 'testdata'),
-        (args.output / 'extensions' / 'test' / 'data'),
-        (args.output / 'media' / 'test' / 'data'),
-        (args.output / 'native_client' / 'src' / 'trusted' / 'service_runtime' / 'testdata'),
-        (args.output / 'third_party' / 'blink' / 'tools'),
-        (args.output / 'third_party' / 'blink' / 'web_tests'),
-        (args.output / 'third_party' / 'breakpad' / 'breakpad' / 'src' / 'processor' / 'testdata'),
-        (args.output / 'third_party' / 'catapult' / 'tracing' / 'test_data'),
-        (args.output / 'third_party' / 'hunspell' / 'tests'),
-        (args.output / 'third_party' / 'hunspell_dictionaries'),
-        (args.output / 'third_party' / 'jdk' / 'current'),
-        (args.output / 'third_party' / 'jdk' / 'extras'),
-        (args.output / 'third_party' / 'liblouis' / 'src' / 'tests' / 'braille-specs'),
-        (args.output / 'third_party' / 'xdg-utils' / 'tests'),
-        (args.output / 'v8' / 'test'),
-    )
-    keep_files = (
-        (args.output / 'chrome' / 'test' / 'data' / 'webui' / 'i18n_process_css_test.html'),
-        (args.output / 'chrome' / 'test' / 'data' / 'webui' / 'mojo' / 'foobar.mojom'),
-        (args.output / 'chrome' / 'test' / 'data' / 'webui' / 'web_ui_test.mojom'),
-        (args.output / 'v8' / 'test' / 'torque' / 'test-torque.tq'),
-    )
-    keep_suffix = ('.gn', '.gni', '.grd', '.gyp', '.isolate', '.pydeps')
-    # Include Contingent Paths
-    for cpath in CONTINGENT_PATHS:
-        if args.sysroot and f'{args.sysroot}-sysroot' in cpath:
-            continue
-        remove_dirs += (args.output / Path(cpath), )
-    for remove_dir in remove_dirs:
-        for path in sorted(remove_dir.rglob('*'), key=lambda l: len(str(l)), reverse=True):
-            if path.is_file() and path not in keep_files and path.suffix not in keep_suffix:
-                try:
-                    path.unlink()
-                # read-only files can't be deleted on Windows
-                # so remove the flag and try again.
-                except PermissionError:
-                    path.chmod(S_IWRITE)
-                    path.unlink()
-            elif path.is_dir() and not any(path.iterdir()):
-                try:
-                    path.rmdir()
-                except PermissionError:
-                    path.chmod(S_IWRITE)
-                    path.rmdir()
     for path in sorted(args.output.rglob('*'), key=lambda l: len(str(l)), reverse=True):
         if not path.is_symlink() and '.git' not in path.parts:
-            if path.is_file() and ('out' in path.parts or path.name.startswith('ChangeLog')):
+            if path.is_file() and (('out' in path.parts and 'node_modules' not in path.parts)
+                                   or path.name.startswith('ChangeLog')):
                 try:
                     path.unlink()
                 except PermissionError:
@@ -295,7 +268,7 @@ def main():
     parser.add_argument('-p',
                         '--pgo',
                         default='linux',
-                        choices=('linux', 'mac', 'mac-arm', 'win32', 'win64'),
+                        choices=('linux', 'mac', 'mac-arm', 'win32', 'win64', 'win-arm64'),
                         help='Specifiy which pgo profile to download.  Default: %(default)s')
     parser.add_argument('-s',
                         '--sysroot',

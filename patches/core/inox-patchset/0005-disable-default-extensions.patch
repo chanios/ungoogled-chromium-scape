@@ -1,13 +1,13 @@
 --- a/chrome/browser/extensions/component_extensions_allowlist/allowlist.cc
 +++ b/chrome/browser/extensions/component_extensions_allowlist/allowlist.cc
-@@ -31,7 +31,6 @@ namespace extensions {
+@@ -29,7 +29,6 @@ namespace extensions {
  
  bool IsComponentExtensionAllowlisted(const std::string& extension_id) {
-   const char* const kAllowed[] = {
--    extension_misc::kInAppPaymentsSupportAppId,
-     extension_misc::kPdfExtensionId,
+   constexpr auto kAllowed = base::MakeFixedFlatSet<std::string_view>({
+-      extension_misc::kInAppPaymentsSupportAppId,
+       extension_misc::kPdfExtensionId,
  #if BUILDFLAG(IS_CHROMEOS)
-     extension_misc::kAssessmentAssistantExtensionId,
+       extension_misc::kAssessmentAssistantExtensionId,
 --- a/chrome/browser/extensions/component_loader.cc
 +++ b/chrome/browser/extensions/component_loader.cc
 @@ -410,11 +410,6 @@ void ComponentLoader::AddWebStoreApp() {
@@ -21,7 +21,7 @@
 -      l10n_util::GetStringUTF8(IDS_WEBSTORE_APP_DESCRIPTION));
  }
  
- #if BUILDFLAG(IS_CHROMEOS_ASH)
+ #if BUILDFLAG(IS_CHROMEOS)
 --- a/chrome/browser/extensions/external_component_loader.cc
 +++ b/chrome/browser/extensions/external_component_loader.cc
 @@ -37,9 +37,6 @@ ExternalComponentLoader::~ExternalCompon
@@ -36,7 +36,7 @@
    {
 --- a/chrome/browser/extensions/webstore_installer.cc
 +++ b/chrome/browser/extensions/webstore_installer.cc
-@@ -519,20 +519,6 @@ void WebstoreInstaller::DownloadNextPend
+@@ -485,20 +485,6 @@ void WebstoreInstaller::DownloadNextPend
  
  void WebstoreInstaller::DownloadCrx(const extensions::ExtensionId& extension_id,
                                      InstallSource source) {
@@ -57,7 +57,7 @@
  }
  
  // http://crbug.com/165634
-@@ -677,25 +663,6 @@ void WebstoreInstaller::UpdateDownloadPr
+@@ -644,25 +630,6 @@ void WebstoreInstaller::UpdateDownloadPr
  void WebstoreInstaller::StartCrxInstaller(const DownloadItem& download) {
    DCHECK_CURRENTLY_ON(BrowserThread::UI);
    DCHECK(!crx_installer_.get());
@@ -66,7 +66,7 @@
 -      extension_service();
 -  CHECK(service);
 -
--  const Approval* approval = GetAssociatedApproval(download);
+-  const InstallApproval* approval = GetAssociatedApproval(download);
 -  DCHECK(approval);
 -
 -  crx_installer_ = download_crx_util::CreateCrxInstaller(profile_, download);

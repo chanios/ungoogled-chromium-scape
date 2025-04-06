@@ -1,9 +1,10 @@
+upstream-fixes/glue_core_pools.patch
+upstream-fixes/hardware_destructive_interference_size.patch
 upstream-fixes/missing-dependencies.patch
 
 core/inox-patchset/0001-fix-building-without-safebrowsing.patch
 core/inox-patchset/0003-disable-autofill-download-manager.patch
 core/inox-patchset/0005-disable-default-extensions.patch
-core/inox-patchset/0009-disable-google-ipv6-probes.patch
 core/inox-patchset/0015-disable-update-pings.patch
 core/inox-patchset/0021-disable-rlz.patch
 core/iridium-browser/safe_browsing-disable-incident-reporting.patch
@@ -62,7 +63,6 @@ extra/ungoogled-chromium/add-flag-to-configure-extension-downloading.patch
 extra/ungoogled-chromium/add-flag-for-search-engine-collection.patch
 extra/ungoogled-chromium/add-flag-to-disable-beforeunload.patch
 extra/ungoogled-chromium/add-flag-to-force-punycode-hostnames.patch
-extra/ungoogled-chromium/disable-webgl-renderer-info.patch
 extra/ungoogled-chromium/add-flag-to-show-avatar-button.patch
 extra/ungoogled-chromium/add-suggestions-url-field.patch
 extra/ungoogled-chromium/add-flag-to-hide-crashed-bubble.patch
@@ -93,7 +93,6 @@ extra/ungoogled-chromium/disable-remote-optimization-guide.patch
 extra/ungoogled-chromium/add-flag-to-disable-tls-grease.patch
 extra/ungoogled-chromium/add-flag-to-change-http-accept-header.patch
 extra/ungoogled-chromium/add-flag-to-disable-sharing-hub.patch
-extra/ungoogled-chromium/add-flag-to-hide-side-panel-button.patch
 extra/ungoogled-chromium/add-flag-for-disabling-link-drag.patch
 extra/ungoogled-chromium/add-flag-to-hide-extensions-menu.patch
 extra/ungoogled-chromium/add-flag-to-hide-fullscreen-exit-ui.patch
@@ -105,3 +104,9 @@ extra/ungoogled-chromium/first-run-page.patch
 extra/ungoogled-chromium/disable-capture-all-screens.patch
 extra/ungoogled-chromium/add-flag-to-reduce-system-info.patch
 extra/ungoogled-chromium/add-flag-to-remove-client-hints.patch
+extra/ungoogled-chromium/disable-downloads-page-referrer-url.patch
+extra/ungoogled-chromium/enable-extra-locales.patch
+extra/ungoogled-chromium/disable-chromelabs.patch
+extra/ungoogled-chromium/remove-pac-size-limit.patch
+extra/ungoogled-chromium/enable-certificate-transparency-and-add-flag.patch
+extra/ungoogled-chromium/add-flag-to-spoof-webgl-renderer-info.patch

@@ -16,7 +16,7 @@
  #include "chrome/common/pref_names.h"
  #include "chrome/grit/generated_resources.h"
  #include "components/feature_engagement/public/event_constants.h"
-@@ -534,6 +536,17 @@ void ExtensionsToolbarContainer::AnchorA
+@@ -543,6 +545,17 @@ void ExtensionsToolbarContainer::AnchorA
    widget->widget_delegate()->AsBubbleDialogDelegate()->SetAnchorView(
        anchor_view && anchor_view->GetVisible() ? anchor_view
                                                 : GetExtensionsButton());
@@ -34,7 +34,7 @@
    widget->Show();
  }
  
-@@ -920,6 +933,9 @@ void ExtensionsToolbarContainer::UpdateC
+@@ -942,6 +955,9 @@ void ExtensionsToolbarContainer::UpdateC
  }
  
  bool ExtensionsToolbarContainer::ShouldContainerBeVisible() const {
@@ -43,10 +43,10 @@
 +
    // The container (and extensions-menu button) should not be visible if we have
    // no extensions.
-   if (!HasAnyExtensions())
+   if (!HasAnyExtensions()) {
 --- a/chrome/browser/ungoogled_flag_entries.h
 +++ b/chrome/browser/ungoogled_flag_entries.h
-@@ -108,4 +108,8 @@
+@@ -104,4 +104,8 @@
       "Disable link drag",
       "Prevents dragging of links and selected text. ungoogled-chromium flag.",
       kOsDesktop, FEATURE_VALUE_TYPE(blink::features::kDisableLinkDrag)},
